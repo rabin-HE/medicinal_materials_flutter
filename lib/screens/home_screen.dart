@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
 import '../models/herb_category.dart';
 import '../models/sales_record.dart';
 import '../services/tax_calculator.dart';
+import '../services/excel_preprocessor.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,34 +56,19 @@ class _HomeScreenState extends State<HomeScreen> {
         print('[DEBUG] Excel解析失败: $e');
         print('[DEBUG] 尝试预处理文件...');
         
-        // 调用Python脚本预处理
-        final processResult = await Process.run(
-          'python3',
-          ['/tmp/simplify_excel.py', file.path!],
-        );
-        
-        if (processResult.exitCode != 0) {
+        try {
+          // 使用纯Dart预处理器修复xlsx文件
+          final fixedBytes = ExcelPreprocessor.fixExcelBytes(bytes);
+          excel = Excel.decodeBytes(fixedBytes);
+          print('[DEBUG] 成功读取预处理后的文件');
+        } catch (e2) {
+          print('[DEBUG] 预处理后的文件仍然无法解析: $e2');
           setState(() {
-            _errorMessage = 'Excel文件解析失败且预处理失败: ${processResult.stderr}';
+            _errorMessage = '预处理后的Excel文件仍然无法解析: $e2';
             _isLoading = false;
           });
           return;
         }
-        
-        // 读取预处理后的文件
-        final simplifiedPath = '${file.path!.replaceAll('.xlsx', '')}_simplified.xlsx';
-        final simplifiedFile = File(simplifiedPath);
-        if (!await simplifiedFile.exists()) {
-          setState(() {
-            _errorMessage = '预处理后的文件不存在';
-            _isLoading = false;
-          });
-          return;
-        }
-        
-        final simplifiedBytes = await simplifiedFile.readAsBytes();
-        excel = Excel.decodeBytes(simplifiedBytes);
-        print('[DEBUG] 成功读取预处理后的文件');
       }
       
       // 读取第一个工作表
