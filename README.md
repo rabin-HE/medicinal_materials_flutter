@@ -13,4 +13,7 @@ flutter build web --release
 
 #docker
 docker compose up --build
+
+#chorme
+ctrl + shift + r
 ```
