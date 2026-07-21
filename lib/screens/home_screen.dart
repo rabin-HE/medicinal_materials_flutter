@@ -226,15 +226,15 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 16),
-          const Text(
+          const SelectableText(
             '请导入收费明细 Excel 文件',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text('系统将自动分类并计算税费', style: TextStyle(color: Colors.grey)),
+          const SelectableText('系统将自动分类并计算税费', style: TextStyle(color: Colors.grey)),
           if (_errorMessage != null) ...[
             const SizedBox(height: 16),
-            Text(
+            SelectableText(
               _errorMessage!,
               style: const TextStyle(color: Colors.red),
               textAlign: TextAlign.center,
@@ -272,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            const SelectableText(
               '总计',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
@@ -296,8 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
-          Text(
+          SelectableText(label),
+          SelectableText(
             '¥ ${amount.toStringAsFixed(2)}',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -316,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            const SelectableText(
               '分类统计及税费计算',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -334,26 +334,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
+                        SelectableText(
                           '${category.name} (${(category.taxRate * 100).toStringAsFixed(0)}%)',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        Text('$count 项'),
+                        SelectableText('$count 项'),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('汇总金额: ¥ ${total.toStringAsFixed(2)}'),
-                        Text(
+                        SelectableText('汇总金额: ¥ ${total.toStringAsFixed(2)}'),
+                        SelectableText(
                           '税费: ¥ ${tax.toStringAsFixed(2)}',
                           style: const TextStyle(color: Colors.red),
                         ),
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(
+                    SelectableText(
                       category == HerbCategory.plant
                           ? '计算公式: ¥${total.toStringAsFixed(2)} / 1.09 × 0.09 = ¥${tax.toStringAsFixed(2)}'
                           : '计算公式: ¥${total.toStringAsFixed(2)} / 1.13 × 0.13 = ¥${tax.toStringAsFixed(2)}',
@@ -381,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Icon(Icons.warning, color: Colors.orange),
                 const SizedBox(width: 8),
-                Text(
+                SelectableText(
                   '未识别药材 (${_summary!.unidentifiedRecords.length} 项)',
                   style: const TextStyle(
                     fontSize: 16,
@@ -395,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ..._summary!.unidentifiedRecords.map((record) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text('${record.herbName}: ¥ ${record.totalAmount}'),
+                child: SelectableText('${record.herbName}: ¥ ${record.totalAmount}'),
               );
             }),
           ],
@@ -411,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            const SelectableText(
               '详细清单',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -426,12 +426,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: Text(
+                          child: SelectableText(
                             record.herbName,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        Text(
+                        SelectableText(
                           record.category?.name ?? '未知',
                           style: TextStyle(
                             color: record.category == null
@@ -445,8 +445,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('实收: ¥ ${record.totalAmount.toStringAsFixed(2)}'),
-                        Text(
+                        SelectableText('实收: ¥ ${record.totalAmount.toStringAsFixed(2)}'),
+                        SelectableText(
                           '税率: ${(record.taxRate * 100).toStringAsFixed(0)}%',
                         ),
                       ],
