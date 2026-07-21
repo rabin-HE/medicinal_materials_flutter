@@ -55,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Excel解析失败，尝试预处理
         print('[DEBUG] Excel解析失败: $e');
         print('[DEBUG] 尝试预处理文件...');
-        
+
         try {
           // 使用纯Dart预处理器修复xlsx文件
           final fixedBytes = ExcelPreprocessor.fixExcelBytes(bytes);
@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return;
         }
       }
-      
+
       // 读取第一个工作表
       if (excel.tables.isEmpty) {
         setState(() {
@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // 尝试获取第一个工作表
       final firstSheetName = excel.tables.keys.first;
       print('选择的工作表: "$firstSheetName"');
-      
+
       final sheet = excel.tables[firstSheetName];
       if (sheet == null || sheet.rows.isEmpty) {
         setState(() {
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final data = <List<dynamic>>[];
       print('=== 开始读取Excel数据 ===');
       print('总行数: ${sheet.rows.length}');
-      
+
       for (int i = 1; i < sheet.rows.length; i++) {
         final row = sheet.rows[i];
         if (row.isEmpty) continue;
@@ -114,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
           rowData.add(cell?.value);
         }
         data.add(rowData);
-        
+
         // 打印前5行原始数据用于调试
         if (i <= 5) {
           print('第${i}行数据:');
@@ -231,7 +231,10 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const SelectableText('系统将自动分类并计算税费', style: TextStyle(color: Colors.grey)),
+          const SelectableText(
+            '系统将自动分类并计算税费',
+            style: TextStyle(color: Colors.grey),
+          ),
           if (_errorMessage != null) ...[
             const SizedBox(height: 16),
             SelectableText(
@@ -395,7 +398,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ..._summary!.unidentifiedRecords.map((record) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
-                child: SelectableText('${record.herbName}: ¥ ${record.totalAmount}'),
+                child: SelectableText(
+                  '${record.herbName}: ¥ ${record.totalAmount}',
+                ),
               );
             }),
           ],
@@ -411,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SelectableText(
+            const Text(
               '详细清单',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -426,12 +431,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: SelectableText(
+                          child: Text(
                             record.herbName,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        SelectableText(
+                        Text(
                           record.category?.name ?? '未知',
                           style: TextStyle(
                             color: record.category == null
@@ -445,8 +450,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        SelectableText('实收: ¥ ${record.totalAmount.toStringAsFixed(2)}'),
-                        SelectableText(
+                        Text('实收: ¥ ${record.totalAmount.toStringAsFixed(2)}'),
+                        Text(
                           '税率: ${(record.taxRate * 100).toStringAsFixed(0)}%',
                         ),
                       ],
