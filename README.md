@@ -12,7 +12,7 @@ flutter pub get
 flutter build web --release
 
 #docker
-docker compose up --build
+docker compose up -d --build
 
 #chorme
 ctrl + shift + r
