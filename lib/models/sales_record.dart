@@ -1,4 +1,5 @@
 import 'herb_category.dart';
+import '../services/herb_dictionary.dart';
 
 /// 销售记录模型
 class SalesRecord {
@@ -22,7 +23,7 @@ class SalesRecord {
     required double quantity,
     required double totalAmount,
   }) {
-    final category = HerbCategory.findByHerbName(herbName);
+    final category = HerbDictionary.instance.lookup(herbName);
     final taxRate = category?.taxRate ?? 0.0;
 
     return SalesRecord(

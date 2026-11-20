@@ -5,6 +5,8 @@ import '../models/herb_category.dart';
 import '../models/sales_record.dart';
 import '../services/tax_calculator.dart';
 import '../services/excel_preprocessor.dart';
+import '../services/herb_dictionary.dart';
+import 'herb_dictionary_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -195,12 +197,89 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// 字典变化后重新归类并重算（SalesRecord 不可变，整体重建一遍）
+  void _recompute() {
+    if (_records.isEmpty) return;
+    final rebuilt = _records
+        .map(
+          (record) => SalesRecord.fromExcel(
+            herbName: record.herbName,
+            quantity: record.quantity,
+            totalAmount: record.totalAmount,
+          ),
+        )
+        .toList();
+    final summary = TaxCalculator.calculateSummary(rebuilt);
+    setState(() {
+      _records = rebuilt;
+      _summary = summary;
+      _categoryTax = TaxCalculator.calculateCategoryTax(summary.categoryTotals);
+    });
+  }
+
+  /// 打开药材字典；回来后重算，字典改动能立刻反映到税额上
+  Future<void> _openDictionary({String initialQuery = ''}) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => HerbDictionaryScreen(initialQuery: initialQuery),
+      ),
+    );
+    if (!mounted) return;
+    _recompute();
+  }
+
+  /// 给某个未识别药材直接指定类别
+  Future<void> _assignCategory(String herbName) async {
+    final category = await showDialog<HerbCategory>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text('「$herbName」属于哪一类？'),
+        children: [
+          ...HerbCategory.values.map(
+            (value) => SimpleDialogOption(
+              onPressed: () => Navigator.of(dialogContext).pop(value),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
+                  '${value.name}（${(value.taxRate * 100).toStringAsFixed(0)}%）',
+                ),
+              ),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 6),
+              child: Text('取消'),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (category == null) return;
+
+    await HerbDictionary.instance.upsert(herbName, category);
+    if (!mounted) return;
+    _recompute();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('「$herbName」已归类为${category.name}')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('税费计算器'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: [
+          IconButton(
+            tooltip: '药材字典（${HerbDictionary.instance.herbs.length} 味）',
+            icon: const Icon(Icons.menu_book),
+            onPressed: _openDictionary,
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -254,6 +333,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_summary!.unidentifiedRecords.isNotEmpty) ...[
+            _buildUnidentifiedBanner(),
+            const SizedBox(height: 16),
+          ],
           _buildTotalCard(),
           const SizedBox(height: 16),
           _buildCategoryBreakdown(),
@@ -372,6 +455,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// 未识别药材的红色警告：这部分金额现在按 0 税率，总税额会偏低
+  Widget _buildUnidentifiedBanner() {
+    final records = _summary!.unidentifiedRecords;
+    final amount = records.fold<double>(0, (sum, r) => sum + r.totalAmount);
+    return Card(
+      color: Colors.red.shade50,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Icon(Icons.error_outline, color: Colors.red),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '有 ${records.length} 项药材不在字典中，涉及 ¥ ${amount.toStringAsFixed(2)} '
+                '未计税，总税额偏低。请在下方「未识别药材」里点「归类」补齐。',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => _openDictionary(initialQuery: records.first.herbName),
+              child: const Text('打开字典'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildUnidentifiedList() {
     return Card(
       color: Colors.orange.shade50,
@@ -398,8 +517,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ..._summary!.unidentifiedRecords.map((record) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
-                child: SelectableText(
-                  '${record.herbName}: ¥ ${record.totalAmount}',
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SelectableText(
+                        '${record.herbName}: ¥ ${record.totalAmount.toStringAsFixed(2)}',
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => _assignCategory(record.herbName),
+                      child: const Text('归类'),
+                    ),
+                  ],
                 ),
               );
             }),

@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'services/herb_dictionary.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await HerbDictionary.instance.load();
+  } catch (e) {
+    // 字典加载失败不阻断启动，界面会把所有药材显示为未识别
+    debugPrint('[main] 药材字典加载失败: $e');
+  }
   runApp(const MyApp());
 }
 
