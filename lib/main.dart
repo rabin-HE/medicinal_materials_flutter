@@ -23,6 +23,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
+        // 用内置字体，避免 CanvasKit 去 fonts.gstatic.com 拉 Roboto / Noto 兜底字体
+        fontFamily: 'AppLatin',
+        fontFamilyFallback: const ['AppCJK'],
       ),
       home: const HomeScreen(),
     );

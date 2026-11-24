@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
@@ -85,5 +86,39 @@ void main() {
     expect(find.text('¥ 38.51'), findsOneWidget);
     expect(find.textContaining('不在字典中'), findsNothing);
     expect(HerbDictionary.instance.lookup('某种新药材'), HerbCategory.plant);
+  });
+
+  testWidgets('真实 50 列收费明细在界面上给出正确合计', (tester) async {
+    FilePicker.platform = _FakeFilePicker(
+      File('2026-11-06_2026-11-08.xlsx').readAsBytesSync(),
+    );
+
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('导入 Excel'));
+    await tester.pumpAndSettle();
+
+    // 实收合计 11707.71，总税额 975.43（此前这里全是 0）
+    expect(find.text('¥ 11707.71'), findsOneWidget);
+    expect(find.text('¥ 975.43'), findsOneWidget);
+    expect(find.textContaining('不在字典中'), findsNothing);
+  }, skip: !File('2026-11-06_2026-11-08.xlsx').existsSync());
+
+  testWidgets('解析不出任何记录时给出错误提示，而不是显示 0', (tester) async {
+    final excel = Excel.createExcel();
+    final sheet = excel[excel.getDefaultSheet()!];
+    sheet.appendRow([TextCellValue('药品/项目名称'), TextCellValue('实收')]);
+    sheet.appendRow([TextCellValue('红花'), DoubleCellValue(0)]);
+    FilePicker.platform = _FakeFilePicker(Uint8List.fromList(excel.encode()!));
+
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('导入 Excel'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('没有从'), findsOneWidget);
+    expect(find.text('¥ 0.00'), findsNothing);
   });
 }

@@ -32,6 +32,10 @@ PRD.md
 
 # Test
 test/
+tool/
+
+# 构建无关的本地数据
+*.xlsx
 
 # Linux desktop build
 linux/

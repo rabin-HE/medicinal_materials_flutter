@@ -61,6 +61,17 @@ flutter:
   assets:
     - assets/herb_dictionary.json
 
+  # 内置字体：CanvasKit 默认要从 fonts.gstatic.com 拉 Roboto / Noto 兜底字体，
+  # 墙内/无代理的浏览器取不到时文字全是空白（只剩图标和色块）。
+  # Liberation Sans 管拉丁字母和数字，Droid Sans Fallback 管中文（互补，实测无重叠缺口）。
+  fonts:
+    - family: AppLatin
+      fonts:
+        - asset: assets/fonts/LiberationSans-Regular.ttf
+    - family: AppCJK
+      fonts:
+        - asset: assets/fonts/DroidSansFallbackFull.ttf
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
